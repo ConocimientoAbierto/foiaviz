@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Foiaviz</title>
+	<script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+	<meta charset="UTF-8">
+</head>
+<body>
+<h1>Visualización de Solicitudes de Acceso a la Información de datos.gob.ar</h1>
+<script type="text/javascript">
+
+$.get( "ministerios.json", function( data ) {
+	for (ministerio in data) {
+		var cantidades = data[ministerio];
+		for (estado in cantidades) {
+			cantidad = cantidades[estado];
+			$( "body" ).append( "Ministerio: " + ministerio + " Estado: " + eestado + " Candidad: " + estado ); 
+		}
+	}
+}, "json" );
+
+</script>
+</body>
+</html>
