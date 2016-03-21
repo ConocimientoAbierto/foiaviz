@@ -17,6 +17,8 @@
     position: absolute;
     bottom: 20px;
     left: 500px;
+    max-height: 300px;
+    overflow: auto;
   }
 
   span.ref-color {
@@ -24,6 +26,12 @@
       height: 12px;
       margin-right: 5px;
       display: inline-block;
+  }
+  select#que_dato {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 18px;
   }
 </style>
 <div id="refes"></div>
@@ -136,7 +144,7 @@ d3.csv("acceso-informacion-publica.csv", function(csv_data) {
 
     var color = d3
       .scale
-      .category10()
+      .category20()
     
     var refes_div = document.getElementById('refes');
     refes_div.innerHTML = "";
