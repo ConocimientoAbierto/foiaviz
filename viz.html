@@ -1,24 +1,185 @@
 <!DOCTYPE html>
-<html>
-<head>
-	<title>Foiaviz</title>
-	<script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
-	<meta charset="UTF-8">
-</head>
+<meta charset="utf-8">
 <body>
-<h1>Visualización de Solicitudes de Acceso a la Información de datos.gob.ar</h1>
-<script type="text/javascript">
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<style>
+  html{
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    font-family: sans-serif;
+    height: inherit;
+    margin: 0;
+  }
 
-$.get( "ministerios.json", function( data ) {
-	for (ministerio in data) {
-		var cantidades = data[ministerio];
-		for (estado in cantidades) {
-			cantidad = cantidades[estado];
-			$( "body" ).append( "Ministerio: " + ministerio + " Estado: " + eestado + " Candidad: " + estado ); 
-		}
-	}
-}, "json" );
+  #refes{
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+  }
 
+  span.ref-color {
+      width: 10px;
+      height: 12px;
+      margin-right: 5px;
+      display: inline-block;
+  }
+</style>
+<script>
+//Preparar layout
+var bubble = d3.layout.pack()
+    .sort(null)
+    .size([500, 500])
+    .padding(20);
+
+var svg = d3.select("body")
+    .append("svg")
+    .style("width", '100%')
+    .style("height", '100%');
+
+//Get .csv
+d3.csv("acceso-informacion-publica.csv", function(csv_data) {
+
+  //Parsear la data
+  var xMinisterios = [];
+  csv_data.forEach(function(v){
+    if (typeof xMinisterios[v.organismo_informante] != 'object') {
+      xMinisterios[v.organismo_informante] = [];
+    }
+    if (typeof xMinisterios[v.organismo_informante][v.condicion_de_respuesta] != 'object') {
+      xMinisterios[v.organismo_informante][v.condicion_de_respuesta] = [];
+    }
+    xMinisterios[v.organismo_informante][v.condicion_de_respuesta].push(v);
+  });
+
+  console.log(xMinisterios)
+
+  //Separar lo que se va a graficar
+  var data_pa_graficar = Object.keys(xMinisterios)
+    .map(function(m){
+      return { 
+        item:m,
+        values: Object.keys(xMinisterios[m])
+          .map(function(v){
+            return { label: v, val:xMinisterios[m][v].length };
+          })
+      }
+    }).map(function(v){
+      v.value = v.values
+        .map(function(v){return v.val})
+        .reduce(function(a, b){ return a + b; });
+        return v;
+    });
+
+  //Armar grafico de burbujas
+  var burbujas = svg
+    .append("g")
+    .selectAll("svg")
+    .data( 
+      bubble
+        .nodes({children:data_pa_graficar})
+        .filter(function(d) { return !d.children; })
+    );
+
+  //Labels
+  var text = d3
+    .select("svg")
+    .append("text")   
+    .style("opacity", 0);
+
+  //Graficar cada burbuja
+  burbujas
+    .enter()
+    .append("g")      
+    .attr("transform", function(d) { return "translate(" + d.x + "," + d.y+ ")"; })
+    .on("mouseover", function(d) {      
+      text.transition()        
+        .duration(200)      
+        .style("opacity", 1);
+      text.text(d.item)  
+        .attr("x", "500px")     
+        .attr("y", "100px");    
+      })                  
+    .on("mouseout", function(d) {       
+      text.transition()        
+        .duration(500)      
+        .style("opacity", 0);   
+    });
+
+  //Referencias
+
+  // var refe = []
+  //   .concat.apply([], 
+  //     Object.keys(xMinisterios)
+  //       .map(function(v){ return Object.keys(xMinisterios[v]) }))
+  //   .filter(function(v,i,a){ return a.indexOf(v) === i });
+  // console.log(referencias);
+  var referencias = [
+    {
+      label:"Brindó la información",
+      color:"#41AB5D"
+    },
+    {
+      label:"No se entregó por inexistencia de información (art 5)",
+      color:"#FD8D3C"
+    },
+    {
+      label:"Devuelta por no corresponder al organismo",
+      color:"#FED976"
+    },
+    {
+      label:"Pendiente",
+      color:"#92C5DE"
+    },
+    {
+      label:"Derivada a otro organismo",
+      color:"#FFFF33"
+    },
+    {
+      label:"Denegó por excepción Art16.F",
+      color:"#EF3B2C"
+    },
+    {
+      label:"Denegó por excepción Art16.A",
+      color:"#B30000"
+    },
+  ];
+
+  var refes_div = document.createElement('div');
+  refes_div.id = "refes";
+  referencias.forEach(function(v){
+    refes_div.innerHTML += 
+      "<div class='ref'>"+
+        "<span class='ref-color' style='background:"+v.color+";'></span>"+
+        "<span class='ref-label'>" +v.label+ "</span>"+
+      "</div>";
+  });
+  document.body.appendChild(refes_div);
+
+  var color = d3
+    .scale
+    .ordinal()
+    .domain(referencias.map(function(r){return r.label}))
+    .range(referencias.map(function(r){return r.color}));
+  
+  //Tortas
+  var arc = d3.svg.arc().innerRadius(0);
+  var pie = d3.layout.pie();
+  burbujas
+    .selectAll("g.torta")
+    .data(function(d) {
+      return pie( d.values.map(function(v){return v.val}) )
+        .map(function(m) { m.r = d.r; return m; });
+    })
+    .enter()
+    .append("g")
+    .attr("class", "torta")
+    .append("path")
+    .attr("d", function(d) {
+      arc.outerRadius(d.r);
+      return arc(d);
+    })
+    .style("fill", function(d, i) { return color(i); });
+});
 </script>
-</body>
-</html>
