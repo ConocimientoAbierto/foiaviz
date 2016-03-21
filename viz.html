@@ -16,7 +16,7 @@
   #refes{
     position: absolute;
     bottom: 20px;
-    right: 20px;
+    left: 500px;
   }
 
   span.ref-color {
@@ -47,10 +47,10 @@ d3.csv("acceso-informacion-publica.csv", function(csv_data) {
     if (typeof xMinisterios[v.organismo_informante] != 'object') {
       xMinisterios[v.organismo_informante] = [];
     }
-    if (typeof xMinisterios[v.organismo_informante][v.condicion_de_respuesta] != 'object') {
-      xMinisterios[v.organismo_informante][v.condicion_de_respuesta] = [];
+    if (typeof xMinisterios[v.organismo_informante][v.estado] != 'object') {
+      xMinisterios[v.organismo_informante][v.estado] = [];
     }
-    xMinisterios[v.organismo_informante][v.condicion_de_respuesta].push(v);
+    xMinisterios[v.organismo_informante][v.estado].push(v);
   });
 
   console.log(xMinisterios)
@@ -114,36 +114,29 @@ d3.csv("acceso-informacion-publica.csv", function(csv_data) {
   //     Object.keys(xMinisterios)
   //       .map(function(v){ return Object.keys(xMinisterios[v]) }))
   //   .filter(function(v,i,a){ return a.indexOf(v) === i });
-  // console.log(referencias);
+  // console.log(refe);
+
   var referencias = [
     {
-      label:"Brindó la información",
+      label:"Cerrado en plazo",
+      color:"#90DC0F"
+    },
+    {
+      label:"Cerrado fuera de plazo",
       color:"#41AB5D"
     },
     {
-      label:"No se entregó por inexistencia de información (art 5)",
+      label:"Pendiente",
       color:"#FD8D3C"
     },
     {
-      label:"Devuelta por no corresponder al organismo",
-      color:"#FED976"
+      label:"Abierto",
+      color:"#F7DC33"
     },
     {
-      label:"Pendiente",
-      color:"#92C5DE"
-    },
-    {
-      label:"Derivada a otro organismo",
-      color:"#FFFF33"
-    },
-    {
-      label:"Denegó por excepción Art16.F",
-      color:"#EF3B2C"
-    },
-    {
-      label:"Denegó por excepción Art16.A",
-      color:"#B30000"
-    },
+      label:"Cerrado con Mora",
+      color:"#ED2F14"
+    }
   ];
 
   var refes_div = document.createElement('div');
