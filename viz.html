@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <body>
-<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="d3.js"></script>
 <style>
   html{
     height: 100%;
@@ -26,6 +26,20 @@
       display: inline-block;
   }
 </style>
+<div id="refes"></div>
+<select id="que_dato">
+  <option value="estado">estado</option>
+  <option value="forma_del_pedido">forma_del_pedido</option>
+  <option value="punto_de_ingreso">punto_de_ingreso</option>
+  <option value="sector_al_que_se_dirige_la_solicitud">sector_al_que_se_dirige_la_solicitud</option>
+  <option value="perfil_del_solicitante">perfil_del_solicitante</option>
+  <option value="rubro_de_solicitud_de_informacion">rubro_de_solicitud_de_informacion</option>
+  <option value="sector_al_que_derivo_el_enlace_dentro_del_organismo">sector_al_que_derivo_el_enlace_dentro_del_organismo</option>
+  <option value="plazo_en_el_que_se_contesto_la_solicitud">plazo_en_el_que_se_contesto_la_solicitud</option>
+  <option value="forma_de_aviso_de_uso_de_la_prorroga_al_solicitante">forma_de_aviso_de_uso_de_la_prorroga_al_solicitante</option>
+  <option value="condicion_de_respuesta">condicion_de_respuesta</option>
+  <option value="cargo_del_funcionario_que_firma_la_entrega_de_la_informacion">cargo_del_funcionario_que_firma_la_entrega_de_la_informacion</option>
+</select>
 <script>
 //Preparar layout
 var bubble = d3.layout.pack()
@@ -41,138 +55,125 @@ var svg = d3.select("body")
 //Get .csv
 d3.csv("acceso-informacion-publica.csv", function(csv_data) {
 
-  //Parsear la data
-  var xMinisterios = [];
-  csv_data.forEach(function(v){
-    if (typeof xMinisterios[v.organismo_informante] != 'object') {
-      xMinisterios[v.organismo_informante] = [];
-    }
-    if (typeof xMinisterios[v.organismo_informante][v.estado] != 'object') {
-      xMinisterios[v.organismo_informante][v.estado] = [];
-    }
-    xMinisterios[v.organismo_informante][v.estado].push(v);
-  });
+  document.getElementById('que_dato').addEventListener('change', function(e){
+    Graficar(e.target.value);
+  })
 
-  console.log(xMinisterios)
-
-  //Separar lo que se va a graficar
-  var data_pa_graficar = Object.keys(xMinisterios)
-    .map(function(m){
-      return { 
-        item:m,
-        values: Object.keys(xMinisterios[m])
-          .map(function(v){
-            return { label: v, val:xMinisterios[m][v].length };
-          })
+  function Graficar(que){
+    //Parsear la data
+    var xMinisterios = [];
+    csv_data.forEach(function(v){
+      if (typeof xMinisterios[v.organismo_informante] != 'object') {
+        xMinisterios[v.organismo_informante] = [];
       }
-    }).map(function(v){
-      v.value = v.values
-        .map(function(v){return v.val})
-        .reduce(function(a, b){ return a + b; });
-        return v;
+      if (typeof xMinisterios[v.organismo_informante][v[que]] != 'object') {
+        xMinisterios[v.organismo_informante][v[que]] = [];
+      }
+      xMinisterios[v.organismo_informante][v[que]].push(v);
     });
 
-  //Armar grafico de burbujas
-  var burbujas = svg
-    .append("g")
-    .selectAll("svg")
-    .data( 
-      bubble
-        .nodes({children:data_pa_graficar})
-        .filter(function(d) { return !d.children; })
-    );
+    console.log(xMinisterios)
 
-  //Labels
-  var text = d3
-    .select("svg")
-    .append("text")   
-    .style("opacity", 0);
+    //Separar lo que se va a graficar
+    var data_pa_graficar = Object.keys(xMinisterios)
+      .map(function(m){
+        return { 
+          item:m,
+          values: Object.keys(xMinisterios[m])
+            .map(function(v){
+              return { label: v, val:xMinisterios[m][v].length };
+            })
+        }
+      }).map(function(v){
+        v.value = v.values
+          .map(function(v){return v.val})
+          .reduce(function(a, b){ return a + b; });
+          return v;
+      });
 
-  //Graficar cada burbuja
-  burbujas
-    .enter()
-    .append("g")      
-    .attr("transform", function(d) { return "translate(" + d.x + "," + d.y+ ")"; })
-    .on("mouseover", function(d) {      
-      text.transition()        
-        .duration(200)      
-        .style("opacity", 1);
-      text.text(d.item)  
-        .attr("x", "500px")     
-        .attr("y", "100px");    
-      })                  
-    .on("mouseout", function(d) {       
-      text.transition()        
-        .duration(500)      
-        .style("opacity", 0);   
+    //Armar grafico de burbujas
+    var burbujas = svg
+      .append("g")
+      .selectAll("svg")
+      .data( 
+        bubble
+          .nodes({children:data_pa_graficar})
+          .filter(function(d) { return !d.children; })
+      );
+
+    //Labels
+    var text = d3
+      .select("svg")
+      .append("text")   
+      .style("opacity", 0);
+
+    //Graficar cada burbuja
+    burbujas
+      .enter()
+      .append("g")      
+      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y+ ")"; })
+      .on("mouseover", function(d) {      
+        text.transition()        
+          .duration(200)      
+          .style("opacity", 1);
+        text.text(d.item)  
+          .attr("x", "500px")     
+          .attr("y", "100px");    
+        })                  
+      .on("mouseout", function(d) {       
+        text.transition()        
+          .duration(500)      
+          .style("opacity", 0);   
+      });
+
+    //Referencias
+
+    var referencias = []
+      .concat.apply([], 
+        Object.keys(xMinisterios)
+          .map(function(v){ return Object.keys(xMinisterios[v]) }))
+      .filter(function(v,i,a){ return a.indexOf(v) === i });
+
+    var color = d3
+      .scale
+      .category10()
+    
+    var refes_div = document.getElementById('refes');
+    refes_div.innerHTML = "";
+    referencias.forEach(function(v){
+      refes_div.innerHTML += 
+        "<div class='ref'>"+
+          "<span class='ref-color' style='background:"+color(v)+";'></span>"+
+          "<span class='ref-label'>" +v+ "</span>"+
+        "</div>";
     });
+    document.body.appendChild(refes_div);
 
-  //Referencias
-
-  // var refe = []
-  //   .concat.apply([], 
-  //     Object.keys(xMinisterios)
-  //       .map(function(v){ return Object.keys(xMinisterios[v]) }))
-  //   .filter(function(v,i,a){ return a.indexOf(v) === i });
-  // console.log(refe);
-
-  var referencias = [
-    {
-      label:"Cerrado en plazo",
-      color:"#90DC0F"
-    },
-    {
-      label:"Cerrado fuera de plazo",
-      color:"#41AB5D"
-    },
-    {
-      label:"Pendiente",
-      color:"#FD8D3C"
-    },
-    {
-      label:"Abierto",
-      color:"#F7DC33"
-    },
-    {
-      label:"Cerrado con Mora",
-      color:"#ED2F14"
-    }
-  ];
-
-  var refes_div = document.createElement('div');
-  refes_div.id = "refes";
-  referencias.forEach(function(v){
-    refes_div.innerHTML += 
-      "<div class='ref'>"+
-        "<span class='ref-color' style='background:"+v.color+";'></span>"+
-        "<span class='ref-label'>" +v.label+ "</span>"+
-      "</div>";
-  });
-  document.body.appendChild(refes_div);
-
-  var color = d3
-    .scale
-    .ordinal()
-    .domain(referencias.map(function(r){return r.label}))
-    .range(referencias.map(function(r){return r.color}));
-  
-  //Tortas
-  var arc = d3.svg.arc().innerRadius(0);
-  var pie = d3.layout.pie();
-  burbujas
-    .selectAll("g.torta")
-    .data(function(d) {
-      return pie( d.values.map(function(v){return v.val}) )
-        .map(function(m) { m.r = d.r; return m; });
-    })
-    .enter()
-    .append("g")
-    .attr("class", "torta")
-    .append("path")
-    .attr("d", function(d) {
-      arc.outerRadius(d.r);
-      return arc(d);
-    })
-    .style("fill", function(d, i) { return color(i); });
+    //Tortas
+    var arc = d3.svg.arc().innerRadius(0);
+    var pie = d3.layout.pie();
+    burbujas
+      .selectAll("g.torta")
+      .data(function(d) {
+        return pie( d.values.map(function(v){return v.val}) )
+          .map(function(m) { 
+            m.lbl = d.values.map(function(v){return v.label});
+            m.r = d.r; 
+            return m; 
+          });
+      })
+      .enter()
+      .append("g")
+      .attr("class", "torta")
+      .append("path")
+      .attr("d", function(d) {
+        arc.outerRadius(d.r);
+        return arc(d);
+      })
+      .style("fill", function(d, i) {
+        return color(d.lbl[i]); 
+      });
+  };
+  Graficar('estado');
 });
 </script>
