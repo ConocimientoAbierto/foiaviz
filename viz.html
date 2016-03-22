@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Foiaviz</title>
-	<script src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
-	<meta charset="UTF-8">
+  <meta charset="utf-8">
+  <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <link rel="stylesheet" type="text/css" href="viz.css">
 </head>
 <body>
-<h1>Visualización de Solicitudes de Acceso a la Información de datos.gob.ar</h1>
-<script type="text/javascript">
-
-$.get( "ministerios.json", function( data ) {
-	for (ministerio in data) {
-		var cantidades = data[ministerio];
-		for (estado in cantidades) {
-			cantidad = cantidades[estado];
-			$( "body" ).append( "Ministerio: " + ministerio + " Estado: " + eestado + " Candidad: " + estado ); 
-		}
-	}
-}, "json" );
-
-</script>
+  <aside>
+    <div id="inputs">
+      <label for="burbuja_input">Burbuja:</label>
+      <select id="burbuja_input">
+        <option value="0">Seleccione dato</option>
+      </select>
+      <label for="torta_input">Torta:</label>
+      <select id="torta_input">
+        <option value="0">Seleccione dato</option>
+      </select>
+      <button>Ver</button>
+    </div>
+    <div id="label"></div>
+    <div id="refes"></div>
+  </aside>
+  <script src="viz.js"></script>
 </body>
 </html>
