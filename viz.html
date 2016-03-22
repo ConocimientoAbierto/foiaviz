@@ -3,73 +3,57 @@
 <body>
 <script src="d3.js"></script>
 <style>
-  html{
-    height: 100%;
-    overflow: hidden;
+  body{
+    display: flex;
   }
-  body {
-    font-family: sans-serif;
-    height: inherit;
-    margin: 0;
+  aside{
+    display: flex;
+    flex:1;
+    flex-direction: column;
+    justify-content: space-between;
   }
-
-  #refes{
-    position: absolute;
-    bottom: 20px;
-    left: 500px;
-    max-height: 300px;
-    overflow: auto;
+  button{
+    display: block;
+    margin: 18px 0;
   }
-
+  label{
+    display: block;
+    margin-top: 10px;
+  }
   span.ref-color {
       width: 10px;
       height: 12px;
       margin-right: 5px;
       display: inline-block;
   }
-  aside {
-    position: absolute;
-    left: 500px;
-    top: 20px;
-    font-size: 18px;
-    width: 470px;
+  #label{
+    font-size:25px;
+  }
+  p.gris {
+    margin: 0;
+    font-size: 15px;
+    color: #515151;
+  }
+  #label,#refes{
+    max-height: 300px;
+    overflow: auto;
   }
 </style>
 <aside>
-  <label for="burbuja">Burbuja:</label>
-  <select id="burbuja">
-    <option selected="true" value="organismo_informante">organismo_informante</option>
-    <option value="estado">estado</option>
-    <option value="forma_del_pedido">forma_del_pedido</option>
-    <option value="punto_de_ingreso">punto_de_ingreso</option>
-    <option value="sector_al_que_se_dirige_la_solicitud">sector_al_que_se_dirige_la_solicitud</option>
-    <option value="perfil_del_solicitante">perfil_del_solicitante</option>
-    <option value="rubro_de_solicitud_de_informacion">rubro_de_solicitud_de_informacion</option>
-    <option value="sector_al_que_derivo_el_enlace_dentro_del_organismo">sector_al_que_derivo_el_enlace_dentro_del_organismo</option>
-    <option value="plazo_en_el_que_se_contesto_la_solicitud">plazo_en_el_que_se_contesto_la_solicitud</option>
-    <option value="forma_de_aviso_de_uso_de_la_prorroga_al_solicitante">forma_de_aviso_de_uso_de_la_prorroga_al_solicitante</option>
-    <option value="condicion_de_respuesta">condicion_de_respuesta</option>
-    <option value="cargo_del_funcionario_que_firma_la_entrega_de_la_informacion">cargo_del_funcionario_que_firma_la_entrega_de_la_informacion</option>
-  </select>
-
-  <label for="torta">Torta:</label>
-  <select id="torta">
-    <option value="organismo_informante">organismo_informante</option>
-    <option selected="true" value="estado">estado</option>
-    <option value="forma_del_pedido">forma_del_pedido</option>
-    <option value="punto_de_ingreso">punto_de_ingreso</option>
-    <option value="sector_al_que_se_dirige_la_solicitud">sector_al_que_se_dirige_la_solicitud</option>
-    <option value="perfil_del_solicitante">perfil_del_solicitante</option>
-    <option value="rubro_de_solicitud_de_informacion">rubro_de_solicitud_de_informacion</option>
-    <option value="sector_al_que_derivo_el_enlace_dentro_del_organismo">sector_al_que_derivo_el_enlace_dentro_del_organismo</option>
-    <option value="plazo_en_el_que_se_contesto_la_solicitud">plazo_en_el_que_se_contesto_la_solicitud</option>
-    <option value="forma_de_aviso_de_uso_de_la_prorroga_al_solicitante">forma_de_aviso_de_uso_de_la_prorroga_al_solicitante</option>
-    <option value="condicion_de_respuesta">condicion_de_respuesta</option>
-    <option value="cargo_del_funcionario_que_firma_la_entrega_de_la_informacion">cargo_del_funcionario_que_firma_la_entrega_de_la_informacion</option>
-  </select>
-  <button>Ver</button>
+  <div id="inputs">
+    <label for="burbuja_input">Burbuja:</label>
+    <select id="burbuja_input">
+      <option value="0">Seleccione dato</option>
+    </select>
+    <label for="torta_input">Torta:</label>
+    <select id="torta_input">
+      <option value="0">Seleccione dato</option>
+    </select>
+    <button>Ver</button>
+  </div>
+  <div id="label"></div>
+  <div id="refes"></div>
 </aside>
-<div id="refes"></div>
 <script>
 //Preparar layout
 var bubble = d3.layout.pack()
@@ -79,16 +63,25 @@ var bubble = d3.layout.pack()
 
 var svg = d3.select("body")
     .append("svg")
-    .style("width", '100%')
-    .style("height", '100%');
-
+    .style("width", '500px')
+    .style("height", '500px');
+var torta_input = document.getElementById('torta_input');
+var burbuja_input = document.getElementById('burbuja_input');
+var label_burbu = document.getElementById('label');
 //Get .csv
 d3.csv("acceso-informacion-publica.csv", function(csv_data) {
 
   document.querySelector('aside button').addEventListener('click', function(e){
-    var que_torta = document.getElementById('torta').value;
-    var que_burbuja = document.getElementById('burbuja').value;
+    var que_torta = document.getElementById('torta_input').value;
+    var que_burbuja = document.getElementById('burbuja_input').value;
     Graficar(que_burbuja, que_torta);
+  });
+
+  Object.keys(csv_data[0]).forEach(function(v){
+    var opt = document.createElement('option');
+    opt.innerHTML = opt.value = v;
+    torta_input.appendChild(opt);
+    burbuja_input.appendChild(opt.cloneNode(true));
   });
 
   function Graficar(burbuja, torta){
@@ -134,29 +127,25 @@ d3.csv("acceso-informacion-publica.csv", function(csv_data) {
           .filter(function(d) { return !d.children; })
       );
 
-    //Labels
-    var text = d3
-      .select("svg")
-      .append("text")   
-      .style("opacity", 0);
-
     //Graficar cada burbuja
     burbujas
       .enter()
       .append("g")      
-      .attr("transform", function(d) { return "translate(" + d.x + "," + d.y+ ")"; })
-      .on("mouseover", function(d) {      
-        text.transition()        
-          .duration(200)      
-          .style("opacity", 1);
-        text.text(d.item)  
-          .attr("x", "500px")     
-          .attr("y", "100px");    
-        })                  
-      .on("mouseout", function(d) {       
-        text.transition()        
-          .duration(500)      
-          .style("opacity", 0);   
+      .attr("transform", function(d) { 
+        return "translate(" + d.x + "," + d.y+ ")"; 
+      })
+      .on("mouseover", function(d) {
+        label_burbu.innerHTML = d.item;
+      })
+      .on("mouseout", function(d) {
+        label_burbu.innerHTML = "";
+        // d
+        //   .parent
+        //   .children
+        //   .map(function(v){
+        //     return '<p class="gris">'+v.item+"</p>";
+        //   })
+        //   .join('');
       });
 
     //Referencias
@@ -204,6 +193,7 @@ d3.csv("acceso-informacion-publica.csv", function(csv_data) {
         return color(d.lbl[i]); 
       });
   };
+  
   Graficar('organismo_informante', 'estado');
 });
 </script>
