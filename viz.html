@@ -27,27 +27,49 @@
       margin-right: 5px;
       display: inline-block;
   }
-  select#que_dato {
+  aside {
     position: absolute;
-    right: 20px;
+    left: 500px;
     top: 20px;
     font-size: 18px;
+    width: 470px;
   }
 </style>
+<aside>
+  <label for="burbuja">Burbuja:</label>
+  <select id="burbuja">
+    <option selected="true" value="organismo_informante">organismo_informante</option>
+    <option value="estado">estado</option>
+    <option value="forma_del_pedido">forma_del_pedido</option>
+    <option value="punto_de_ingreso">punto_de_ingreso</option>
+    <option value="sector_al_que_se_dirige_la_solicitud">sector_al_que_se_dirige_la_solicitud</option>
+    <option value="perfil_del_solicitante">perfil_del_solicitante</option>
+    <option value="rubro_de_solicitud_de_informacion">rubro_de_solicitud_de_informacion</option>
+    <option value="sector_al_que_derivo_el_enlace_dentro_del_organismo">sector_al_que_derivo_el_enlace_dentro_del_organismo</option>
+    <option value="plazo_en_el_que_se_contesto_la_solicitud">plazo_en_el_que_se_contesto_la_solicitud</option>
+    <option value="forma_de_aviso_de_uso_de_la_prorroga_al_solicitante">forma_de_aviso_de_uso_de_la_prorroga_al_solicitante</option>
+    <option value="condicion_de_respuesta">condicion_de_respuesta</option>
+    <option value="cargo_del_funcionario_que_firma_la_entrega_de_la_informacion">cargo_del_funcionario_que_firma_la_entrega_de_la_informacion</option>
+  </select>
+
+  <label for="torta">Torta:</label>
+  <select id="torta">
+    <option value="organismo_informante">organismo_informante</option>
+    <option selected="true" value="estado">estado</option>
+    <option value="forma_del_pedido">forma_del_pedido</option>
+    <option value="punto_de_ingreso">punto_de_ingreso</option>
+    <option value="sector_al_que_se_dirige_la_solicitud">sector_al_que_se_dirige_la_solicitud</option>
+    <option value="perfil_del_solicitante">perfil_del_solicitante</option>
+    <option value="rubro_de_solicitud_de_informacion">rubro_de_solicitud_de_informacion</option>
+    <option value="sector_al_que_derivo_el_enlace_dentro_del_organismo">sector_al_que_derivo_el_enlace_dentro_del_organismo</option>
+    <option value="plazo_en_el_que_se_contesto_la_solicitud">plazo_en_el_que_se_contesto_la_solicitud</option>
+    <option value="forma_de_aviso_de_uso_de_la_prorroga_al_solicitante">forma_de_aviso_de_uso_de_la_prorroga_al_solicitante</option>
+    <option value="condicion_de_respuesta">condicion_de_respuesta</option>
+    <option value="cargo_del_funcionario_que_firma_la_entrega_de_la_informacion">cargo_del_funcionario_que_firma_la_entrega_de_la_informacion</option>
+  </select>
+  <button>Ver</button>
+</aside>
 <div id="refes"></div>
-<select id="que_dato">
-  <option value="estado">estado</option>
-  <option value="forma_del_pedido">forma_del_pedido</option>
-  <option value="punto_de_ingreso">punto_de_ingreso</option>
-  <option value="sector_al_que_se_dirige_la_solicitud">sector_al_que_se_dirige_la_solicitud</option>
-  <option value="perfil_del_solicitante">perfil_del_solicitante</option>
-  <option value="rubro_de_solicitud_de_informacion">rubro_de_solicitud_de_informacion</option>
-  <option value="sector_al_que_derivo_el_enlace_dentro_del_organismo">sector_al_que_derivo_el_enlace_dentro_del_organismo</option>
-  <option value="plazo_en_el_que_se_contesto_la_solicitud">plazo_en_el_que_se_contesto_la_solicitud</option>
-  <option value="forma_de_aviso_de_uso_de_la_prorroga_al_solicitante">forma_de_aviso_de_uso_de_la_prorroga_al_solicitante</option>
-  <option value="condicion_de_respuesta">condicion_de_respuesta</option>
-  <option value="cargo_del_funcionario_que_firma_la_entrega_de_la_informacion">cargo_del_funcionario_que_firma_la_entrega_de_la_informacion</option>
-</select>
 <script>
 //Preparar layout
 var bubble = d3.layout.pack()
@@ -63,24 +85,27 @@ var svg = d3.select("body")
 //Get .csv
 d3.csv("acceso-informacion-publica.csv", function(csv_data) {
 
-  document.getElementById('que_dato').addEventListener('change', function(e){
-    Graficar(e.target.value);
-  })
+  document.querySelector('aside button').addEventListener('click', function(e){
+    var que_torta = document.getElementById('torta').value;
+    var que_burbuja = document.getElementById('burbuja').value;
+    Graficar(que_burbuja, que_torta);
+  });
 
-  function Graficar(que){
+  function Graficar(burbuja, torta){
+    document.querySelector('svg').innerHTML = '';
     //Parsear la data
     var xMinisterios = [];
     csv_data.forEach(function(v){
-      if (typeof xMinisterios[v.organismo_informante] != 'object') {
-        xMinisterios[v.organismo_informante] = [];
+      if (typeof xMinisterios[v[burbuja]] != 'object') {
+        xMinisterios[v[burbuja]] = [];
       }
-      if (typeof xMinisterios[v.organismo_informante][v[que]] != 'object') {
-        xMinisterios[v.organismo_informante][v[que]] = [];
+      if (typeof xMinisterios[v[burbuja]][v[torta]] != 'object') {
+        xMinisterios[v[burbuja]][v[torta]] = [];
       }
-      xMinisterios[v.organismo_informante][v[que]].push(v);
+      xMinisterios[v[burbuja]][v[torta]].push(v);
     });
 
-    console.log(xMinisterios)
+    //console.log(xMinisterios)
 
     //Separar lo que se va a graficar
     var data_pa_graficar = Object.keys(xMinisterios)
@@ -142,9 +167,7 @@ d3.csv("acceso-informacion-publica.csv", function(csv_data) {
           .map(function(v){ return Object.keys(xMinisterios[v]) }))
       .filter(function(v,i,a){ return a.indexOf(v) === i });
 
-    var color = d3
-      .scale
-      .category20()
+    var color = d3.scale.category20()
     
     var refes_div = document.getElementById('refes');
     refes_div.innerHTML = "";
@@ -155,7 +178,6 @@ d3.csv("acceso-informacion-publica.csv", function(csv_data) {
           "<span class='ref-label'>" +v+ "</span>"+
         "</div>";
     });
-    document.body.appendChild(refes_div);
 
     //Tortas
     var arc = d3.svg.arc().innerRadius(0);
@@ -182,6 +204,6 @@ d3.csv("acceso-informacion-publica.csv", function(csv_data) {
         return color(d.lbl[i]); 
       });
   };
-  Graficar('estado');
+  Graficar('organismo_informante', 'estado');
 });
 </script>
